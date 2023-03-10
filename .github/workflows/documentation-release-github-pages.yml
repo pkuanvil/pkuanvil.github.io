@@ -1,0 +1,58 @@
+name: Build and Deploy Documentation to Github Pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # https://github.com/mkdocs/mkdocs/discussions/2369
+  # Don't do gh-deploy, this is handled by 'deploy' workflow
+  docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v4
+      - run: pip install --upgrade pip && pip install mkdocs mkdocs-gen-files
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}
+      - run: git config user.name 'github-actions[bot]' && git config user.email 'github-actions[bot]@users.noreply.github.com'
+      - name: Build Docs
+        run: mkdocs build -d ./site
+      - name: Upload Build Artifact
+        # This artifact creates tarball and setup environment for us. This also defaults to give artifact a name of 'github-pages'
+        # which is required by GitHub Pages. 
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./site
+          # expire days
+          retention-days: 7
+  # Single deploy job since we're just deploying
+  deploy:
+    name: Deploy to Github Pages
+    # Depends on documentation successful build
+    needs: docs
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

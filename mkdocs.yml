@@ -1,0 +1,19 @@
+site_name: Bar Project
+site_url: https://pkuanvil.github.io/
+
+# Don't change docs_dir because github workflow file depend on this
+docs_dir: docs
+# Don't set site_dir here, will be overridden in github workflow file
+# site_dir: site
+
+theme:
+    name: mkdocs
+    locale: en
+    highlightjs: true
+
+markdown_extensions:
+    def_list: {}
+    toc:
+        permalink: 
+        separator: "_"
+    admonition: {}
